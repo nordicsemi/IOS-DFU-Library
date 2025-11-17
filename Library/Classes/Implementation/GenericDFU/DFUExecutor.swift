@@ -71,7 +71,13 @@ extension BaseDFUExecutor {
     }
     
     // MARK: - BasePeripheralDelegate API
-    
+
+    func peripheralDidConnect() {
+        delegate {
+            $0.dfuStateDidChange(to: .connected)
+        }
+    }
+
     func peripheralDidFailToConnect() {
         delegate {
             $0.dfuStateDidChange(to: .disconnected)
