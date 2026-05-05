@@ -220,6 +220,8 @@ internal enum DFURemoteError : Int {
     /// Error raised when the CRC reported by the remote device does not match.
     /// Service has done 3 attempts to send the data.
     case crcError                             = 309
+    /// The requested advertising name is too long for the current ATT MTU.
+    case invalidAdvertisementName             = 310
     /// The service went into an invalid state. The service will try to close
     /// without crashing. Recovery to a know state is not possible.
     case invalidInternalState                 = 500

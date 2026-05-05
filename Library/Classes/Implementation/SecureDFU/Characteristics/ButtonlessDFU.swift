@@ -99,7 +99,19 @@ extension ButtonlessDFUResultCode : CustomStringConvertible {
 internal enum ButtonlessDFURequest {
     case enterBootloader
     case set(name: String)
-    
+
+    /// Maximum length in bytes of the UTF-8 encoded advertising name accepted
+    /// by the Set Name request.
+    ///
+    /// The Set Name request is composed of a 1-byte op code, a 1-byte length
+    /// field and the UTF-8 encoded name. With the default ATT MTU of 23 bytes,
+    /// the maximum write payload is 20 bytes, leaving 18 bytes for the name
+    /// itself. CoreBluetooth always reports `maximumWriteValueLength(for: .withResponse)`
+    /// as 512 when Long Write is supported, so the limit cannot be derived
+    /// dynamically and is hard-coded here to avoid a fallback to ATT Prepare
+    /// Write, which Nordic's buttonless DFU service does not handle.
+    static let maximumAdvertisingNameLength = 18
+
     var data: Data {
         switch self {
         case .enterBootloader:
@@ -270,7 +282,15 @@ internal class ButtonlessDFU : NSObject, CBPeripheralDelegate, DFUCharacteristic
         peripheral.delegate = self
         
         let buttonlessUUID = characteristic.uuid.uuidString
-        
+        if case .set(let name) = request,
+           name.lengthOfBytes(using: .utf8) > ButtonlessDFURequest.maximumAdvertisingNameLength {
+            let maximum = ButtonlessDFURequest.maximumAdvertisingNameLength
+            logger.e("\(request) exceeds maximum advertising name length \(maximum)")
+            report?(.invalidAdvertisementName,
+                    "Alternative advertising name is too long. Maximum length is \(maximum) bytes.")
+            return
+        }
+
         logger.v("Writing to characteristic \(buttonlessUUID)...")
         logger.d("peripheral.writeValue(0x\(request.data.hexString), for: \(buttonlessUUID), type: .withResponse)")
         peripheral.writeValue(request.data, for: characteristic, type: .withResponse)
