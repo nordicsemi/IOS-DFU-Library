@@ -29,7 +29,12 @@
 */
 
 internal protocol BasePeripheralDelegate: AnyObject {
-    
+
+    /**
+     Method called when the iDevice successfully connected to the given peripheral.
+     */
+    func peripheralDidConnect()
+
     /**
      Method called when the iDevice failed to connect to the given peripheral.
      The DFU operation will be aborter as nothing can be done.

@@ -71,8 +71,18 @@ extension BaseDFUExecutor {
     }
     
     // MARK: - BasePeripheralDelegate API
-    
+
+    func peripheralDidConnect() {
+        delegate {
+            $0.dfuStateDidChange(to: .connected)
+        }
+    }
+
     func peripheralDidFailToConnect() {
+        delegate {
+            $0.dfuStateDidChange(to: .disconnected)
+        }
+        
         delegate {
             $0.dfuError(.failedToConnect, didOccurWithMessage: "Device failed to connect")
         }
@@ -90,6 +100,11 @@ extension BaseDFUExecutor {
             peripheral.reconnect()
             return
         }
+        
+        delegate {
+            $0.dfuStateDidChange(to: .disconnected)
+        }
+        
         // Check if there was an error that needs to be reported now.
         delegate {
             $0.dfuError(error.error, didOccurWithMessage: error.message)
@@ -99,6 +114,10 @@ extension BaseDFUExecutor {
     }
     
     func peripheralDidDisconnect(withError error: Error) {
+        delegate {
+            $0.dfuStateDidChange(to: .disconnected)
+        }
+        
         delegate {
             $0.dfuError(.deviceDisconnected, didOccurWithMessage:
                 "\(error.localizedDescription) (code: \((error as NSError).code))")
@@ -111,11 +130,16 @@ extension BaseDFUExecutor {
         delegate {
             $0.dfuStateDidChange(to: .aborted)
         }
+        
         // Release the cyclic reference.
         peripheral.destroy()
     }
     
     func error(_ error: DFUError, didOccurWithMessage message: String) {
+        delegate {
+            $0.dfuStateDidChange(to: .disconnected)
+        }
+        
         if error == .bluetoothDisabled {
             delegate {
                 $0.dfuError(.bluetoothDisabled, didOccurWithMessage: message)                

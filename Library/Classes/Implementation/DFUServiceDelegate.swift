@@ -244,6 +244,8 @@ internal enum DFURemoteError : Int {
 @objc public enum DFUState : Int {
     /// Service is connecting to the DFU target.
     case connecting
+    /// Service is connected to the DFU target.
+    case connected
     /// DFU Service is initializing DFU operation.
     case starting
     /// DFU Service is switching the device to DFU mode.
@@ -254,6 +256,8 @@ internal enum DFURemoteError : Int {
     case validating
     /// The iDevice is disconnecting or waiting for disconnection.
     case disconnecting
+    /// The iDevice is disconnected.
+    case disconnected
     /// DFU operation is completed and successful.
     case completed
     /// DFU operation was aborted.
@@ -265,11 +269,13 @@ extension DFUState : CustomStringConvertible {
     public var description: String {
         switch self {
         case .connecting:      return "Connecting"
+        case .connected:       return "Connected"
         case .starting:        return "Starting"
         case .enablingDfuMode: return "Enabling DFU Mode"
         case .uploading:       return "Uploading"
         case .validating:      return "Validating"  // This state occurs only in Legacy DFU.
         case .disconnecting:   return "Disconnecting"
+        case .disconnected:    return "Disconnected"
         case .completed:       return "Completed"
         case .aborted:         return "Aborted"
         }

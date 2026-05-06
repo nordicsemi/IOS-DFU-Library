@@ -159,22 +159,25 @@ internal class BaseDFUPeripheral<TD : BasePeripheralDelegate> : NSObject, BaseDF
         self.peripheral = peripheral
         
         switch peripheral.state {
-        case .connected:
-            let name = peripheral.name ?? "Unknown device"
-            logger.i("Connected to \(name)")
-            
-            if let dfuService = findDfuService(in: peripheral.services) {
-                // A DFU service was found, congratulations!
-                logger.i("Services discovered")
-                peripheralDidDiscoverDfuService(dfuService)
-            } else {
-                // DFU service has not been found, but it doesn't matter it's not
-                // there. Perhaps the user's application didn't discover it.
-                // Let's discover DFU services.
-                discoverServices()
-            }
-        default:
-            connect()
+            case .connected:
+
+                let name = peripheral.name ?? "Unknown device"
+                logger.i("Connected to \(name)")
+
+                delegate?.peripheralDidConnect()
+
+                if let dfuService = findDfuService(in: peripheral.services) {
+                    // A DFU service was found, congratulations!
+                    logger.i("Services discovered")
+                    peripheralDidDiscoverDfuService(dfuService)
+                } else {
+                    // DFU service has not been found, but it doesn't matter it's not
+                    // there. Perhaps the user's application didn't discover it.
+                    // Let's discover DFU services.
+                    discoverServices()
+                }
+            default:
+                connect()
         }
     }
     
@@ -225,7 +228,7 @@ internal class BaseDFUPeripheral<TD : BasePeripheralDelegate> : NSObject, BaseDF
     
     func abort() -> Bool {
         aborted = true
-        if peripheral?.state == .connecting {
+        if peripheral?.state == .connecting || peripheral?.state == .connected {
             disconnect()
         }
         return true
@@ -277,7 +280,9 @@ internal class BaseDFUPeripheral<TD : BasePeripheralDelegate> : NSObject, BaseDF
             resetDevice()
             return
         }
-        
+
+        delegate?.peripheralDidConnect()
+
         discoverServices()
     }
     
