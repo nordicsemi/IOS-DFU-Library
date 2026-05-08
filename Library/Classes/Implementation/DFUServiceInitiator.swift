@@ -280,9 +280,17 @@ import CoreBluetooth
      
      If ``alternativeAdvertisingNameEnabled`` is `true` then this specifies the
      alternative name to use. If `nil` (default) then a random name is generated.
-     
-     The maximum length of the alternative advertising name is 20 bytes.
-     Longer name will be truncated. UTF-8 characters can be cut in the middle.
+
+     The maximum length of the alternative advertising name is 18 UTF-8 bytes.
+     This is required to keep the Set Name request (1-byte op code, 1-byte
+     length and the name itself) within the 20-byte payload of the default
+     ATT MTU. CoreBluetooth always reports the maximum write-with-response
+     length as 512 once Long Write is supported, so the limit cannot be
+     derived dynamically and a longer name would fall back to ATT Prepare
+     Write, which Nordic's buttonless DFU service does not handle.
+
+     The library validates the name before writing it to the device and fails
+     with ``DFUError/invalidAdvertisementName`` if it is too long.
      */
     @objc public var alternativeAdvertisingName: String? = nil
     
