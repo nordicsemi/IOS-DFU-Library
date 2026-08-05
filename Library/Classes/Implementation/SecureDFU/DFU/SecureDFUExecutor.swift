@@ -478,11 +478,18 @@ internal class SecureDFUExecutor : DFUExecutor, SecureDFUPeripheralDelegate {
      - parameter rangeIdx: Index of a range of the firmware.
      */
     private func createDataObject(_ rangeIdx: Int) {
-        guard let firmwareRanges = firmwareRanges else {
+        guard let firmwareRanges else {
             error(.invalidInternalState, didOccurWithMessage:
                   "Assert firmwareRanges != nil failed")
             return
         }
+        
+        guard firmwareRanges.count > rangeIdx else {
+            error(.invalidInternalState, didOccurWithMessage:
+                  "Assert firmwareRanges.count (\(firmwareRanges.count)) > rangeIdx (\(rangeIdx)) failed")
+            return
+        }
+        
         let currentRange = firmwareRanges[rangeIdx]
         peripheral.createDataObject(withLength: UInt32(currentRange.upperBound - currentRange.lowerBound))
         // -> peripheralDidCreateDataObject() will be called.
